@@ -1,8 +1,11 @@
+import 'package:chat_app/helpers/mostrar_alerta.dart';
+import 'package:chat_app/services/auth_service.dart';
 import 'package:chat_app/widgets/boton_azul.dart';
 import 'package:chat_app/widgets/custom_input.dart';
 import 'package:chat_app/widgets/labels.dart';
 import 'package:chat_app/widgets/logo.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class LoginPage extends StatelessWidget {
   @override
@@ -48,6 +51,7 @@ class __FormState extends State<_Form> {
   final passController = TextEditingController();
   @override
   Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context);
     return Container(
       margin: EdgeInsets.only(top: 40),
       padding: EdgeInsets.symmetric(horizontal: 50),
@@ -67,10 +71,23 @@ class __FormState extends State<_Form> {
           ),
           BotonAzul(
               texto: 'ingrese',
-              onPressed: () {
-                print(emailController.text);
-                print(passController.text);
-              })
+              onPressed: authService.autenticando
+                  ? null
+                  : () async {
+                      FocusScope.of(context).unfocus();
+                      final loginOK = await authService.login(
+                          emailController.text.trim(),
+                          passController.text.trim());
+
+                      if (loginOK) {
+                        //TODO: navegar a la siguiente pantalla
+                        Navigator.pushReplacementNamed(context, 'usuarios');
+                      } else {
+                        // mostrar alerta
+                        mostrarAlerta(
+                            context, 'Error', 'Credenciales incorrectas');
+                      }
+                    })
         ],
       ),
     );
